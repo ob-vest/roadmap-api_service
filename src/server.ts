@@ -4,6 +4,9 @@ dotenv.config();
 import { authRouter } from "./routes/apple-auth";
 
 const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+
 console.log("authPrivate", process.env.authPrivateKey);
 app.use("/", authRouter);
 

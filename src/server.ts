@@ -1,12 +1,13 @@
 import express from "express";
 import { authRouter } from "./routes/apple-auth";
+import { db } from "./database/db-connect";
 
 const app = express();
-
+db;
 app.use(express.urlencoded({ extended: true }));
 
 console.log("authPrivate", process.env.authPrivateKey);
-app.use("/", authRouter);
+app.use("/auth", authRouter);
 
 const port = 3000;
 app.listen(port, () => {

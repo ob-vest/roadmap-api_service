@@ -69,12 +69,20 @@ export const commentRelations = relations(comment, ({ one }) => ({
     fields: [comment.userId],
     references: [user.id],
   }),
+  request: one(request, {
+    fields: [comment.requestId],
+    references: [request.id],
+  }),
 }));
 
 export const upvoteRelations = relations(upvote, ({ one }) => ({
   user: one(user, {
     fields: [upvote.userId],
     references: [user.id],
+  }),
+  request: one(request, {
+    fields: [upvote.requestId],
+    references: [request.id],
   }),
 }));
 

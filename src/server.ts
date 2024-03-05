@@ -1,8 +1,10 @@
 import express from "express";
 import { authRouter } from "./routes/apple-auth";
+import { requestsRouter } from "./routes/requests";
 import { db } from "./database/db-connect";
 
 const app = express();
+app.use("/api", requestsRouter);
 db;
 app.use(express.urlencoded({ extended: true }));
 

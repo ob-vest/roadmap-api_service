@@ -10,6 +10,11 @@ const client = new Client({
 export const db = drizzle(client, { schema });
 
 // INSERT MOCK DATA
+db.insert(schema.user)
+  .values({
+    refreshToken: "Mock refresh token",
+  })
+  .execute();
 db.insert(schema.requestState)
   .values({
     title: "Mock state",
@@ -20,6 +25,7 @@ db.insert(schema.request)
     title: "Mock request",
     description: "Mock description",
     stateId: 1,
+    userId: 2,
   })
   .execute();
 db.query.requestState.findFirst().then((result) => {

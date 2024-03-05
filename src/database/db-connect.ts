@@ -9,6 +9,19 @@ const client = new Client({
 
 export const db = drizzle(client, { schema });
 
+// INSERT MOCK DATA
+db.insert(schema.requestState)
+  .values({
+    title: "Mock state",
+  })
+  .execute();
+db.insert(schema.request)
+  .values({
+    title: "Mock request",
+    description: "Mock description",
+    stateId: 1,
+  })
+  .execute();
 db.query.requestState.findFirst().then((result) => {
   console.log(result);
 });

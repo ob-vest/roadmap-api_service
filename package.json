@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && railway run node dist/server.js",
+    "start": "tsc && node dist/server.js",
+    "dev": "tsc && railway run node dist/server.js",
     "db:push": "railway run drizzle-kit push:mysql --config=drizzle.config.ts",
     "db:studio": "railway run drizzle-kit studio"
   },

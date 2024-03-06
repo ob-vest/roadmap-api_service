@@ -1,10 +1,77 @@
+import { Request, Response } from "express";
 import express from "express";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 
-// import appleSignin from "apple-signin-auth";
-
 export const authRouter = express.Router();
+
+function generateClientSecret() {
+  const clientID = process.env.clientID!;
+  const teamID = process.env.teamID!;
+  const keyIdentifier = process.env.keyIdentifier!;
+  const privateKey = process.env.authPrivateKey!;
+  const clientSecret = jwt.sign(
+    {
+      iss: teamID,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 15777000,
+      aud: "https://appleid.apple.com",
+      sub: clientID,
+    },
+    privateKey,
+    {
+      algorithm: "ES256",
+      keyid: keyIdentifier,
+    }
+  );
+  return clientSecret;
+}
+
+interface IAppleSignInResponse {
+  userId: string;
+  authorization: string;
+}
+
+authRouter.post("login", async (req: Request, res: Response) => {
+  // Code to handle user login
+  const { code } = req.body;
+  console.log("code", code);
+  const clientID = process.env.clientID!;
+  const clientSecret = generateClientSecret();
+
+  console.log("clientSecret", clientSecret);
+
+  const appleTokenResponse = await fetch(
+    "https://appleid.apple.com/auth/oauth2/v2/token",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: clientID,
+        client_secret: clientSecret,
+        code: code,
+        grant_type: "authorization_code",
+      }),
+    }
+  );
+
+  if (!appleTokenResponse.ok) {
+    res.status(400).json("You are not authorized to access this resource.");
+    return;
+  }
+  appleTokenResponse.json().then((data) => {
+    console.log("appleTokenResponse", data);
+  });
+
+  const response: IAppleSignInResponse = {
+    userId: "123",
+    authorization: "Bearer token",
+  };
+
+  res.status(200).json(response);
+});
 
 async function key(kid: string) {
   const client = jwksClient({
@@ -89,69 +156,3 @@ authRouter.post("/auth/apple/refresh", async (req, res) => {
 
   res.status(200).send(data);
 });
-
-// // const options = {
-// //   clientID: process.env.clientID!, // Apple Client ID
-// //   redirectUri: "http://localhost:3000/auth/apple/callback",
-// //   // OPTIONAL
-// //   state: "state", // optional, An unguessable random string. It is primarily used to protect against CSRF attacks.
-// //   responseMode: "query", // Force set to form_post if scope includes 'email'
-// //   //   scope: "email", // optional
-// // };
-
-// // const authorizationUrl = appleSignin.getAuthorizationUrl(options);
-// authRouter.post("/auth/apple/callback", async (req, res) => {
-//   const code = req.headers.code as string;
-//   console.log("code", code);
-//   const clientSecret = appleSignin.getClientSecret({
-//     clientID: process.env.clientID!,
-//     teamID: process.env.teamID!,
-//     privateKey: process.env.authPrivateKey,
-//     keyIdentifier: process.env.keyIdentifier!,
-//     // OPTIONAL
-//     expAfter: 15777000, // Unix time in seconds after which to expire the clientSecret JWT. Default is now+5 minutes.
-//   });
-
-//   const options = {
-//     clientID: process.env.clientID!, // Apple Client ID
-
-//     clientSecret: clientSecret,
-//   };
-
-//   try {
-//     const tokenResponse = await appleSignin.getAuthorizationToken(
-//       code,
-//       options
-//     );
-//     console.log(tokenResponse);
-//     res.send(tokenResponse);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// });
-
-// authRouter.post("/auth/apple/verify", async (req, res) => {
-//   const idToken = req.headers.id_token as string;
-//   console.log("idToken", idToken);
-//   const clientSecret = appleSignin.getClientSecret({
-//     clientID: process.env.clientID!,
-//     teamID: process.env.teamID!,
-//     privateKey: process.env.authPrivateKey,
-//     keyIdentifier: process.env.keyIdentifier!,
-//     // OPTIONAL
-//     expAfter: 15777000, // Unix time in seconds after which to expire the clientSecret JWT. Default is now+5 minutes.
-//   });
-//   console.log("clientSecret:", clientSecret);
-//   const options = {
-//     clientID: process.env.clientID!, // Apple Client ID
-//     clientSecret: clientSecret,
-//   };
-
-//   try {
-//     const verifyResponse = await appleSignin.verifyIdToken(idToken, options);
-//     console.log(verifyResponse);
-//     res.send(verifyResponse);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// });

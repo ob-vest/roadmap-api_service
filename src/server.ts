@@ -10,7 +10,7 @@ app.use("/api", requestsRouter);
 db;
 
 console.log("authPrivate", process.env.authPrivateKey);
-app.use("/auth", authRouter);
+app.use("/", authRouter);
 
 const port = 3000;
 app.listen(port, () => {

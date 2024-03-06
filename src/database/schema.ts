@@ -10,6 +10,7 @@ import {
 
 export const user = mysqlTable("user", {
   id: int("id").autoincrement().primaryKey(),
+  idToken: varchar("id_token", { length: 255 }).notNull().unique(),
   refreshToken: varchar("refresh_token", { length: 255 }).notNull(),
   isBlocked: boolean("is_blocked").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),

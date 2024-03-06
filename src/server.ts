@@ -4,9 +4,10 @@ import { requestsRouter } from "./routes/requests";
 import { db } from "./database/db-connect";
 
 const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use("/api", requestsRouter);
 db;
-app.use(express.urlencoded({ extended: true }));
 
 console.log("authPrivate", process.env.authPrivateKey);
 app.use("/auth", authRouter);

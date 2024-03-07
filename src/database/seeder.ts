@@ -36,7 +36,7 @@ export async function seedUsers() {
   // Inserting 50 users
   for (let i = 0; i < totalUsers; i++) {
     await db.insert(schema.user).values({
-      idToken: faker.string.nanoid(20),
+      appleUserId: faker.string.nanoid(20),
       refreshToken: faker.string.nanoid(20),
     });
   }
@@ -72,7 +72,7 @@ export async function seedComments() {
 export async function seedUpvotes() {
   // Inserting 100 upvotes
   for (let i = 0; i < totalUpvotes; i++) {
-    await db.insert(schema.upvote).values({
+    await db.insert(schema.requestUpvote).values({
       userId: Math.floor(Math.random() * totalUsers) + 1,
       requestId: Math.floor(Math.random() * totalRequests) + 1,
     });
@@ -91,7 +91,7 @@ export async function seedDatabase() {
 }
 
 // Reset the database
-async function resetDatabase() {
+export async function resetDatabase() {
   // Truncate all tables and restart identity
   // https://gist.github.com/ThimoDEV/b071dc83308d6b0a5e165efb6efa4902
   await db.execute(

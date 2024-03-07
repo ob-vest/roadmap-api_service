@@ -2,76 +2,28 @@ import { Request, Response } from "express";
 import express from "express";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { getRequests } from "../controllers/auth/login";
 
 export const authRouter = express.Router();
 
-function generateClientSecret() {
-  const clientID = process.env.clientID!;
-  const teamID = process.env.teamID!;
-  const keyIdentifier = process.env.keyIdentifier!;
-  const privateKey = process.env.authPrivateKey!;
-  const clientSecret = jwt.sign(
-    {
-      iss: teamID,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 15777000,
-      aud: "https://appleid.apple.com",
-      sub: clientID,
-    },
-    privateKey,
-    {
-      algorithm: "ES256",
-      keyid: keyIdentifier,
-    }
-  );
-  return clientSecret;
-}
+// interface userClientInfo {
 
-interface IAppleSignInResponse {
-  userId: string;
-  authorization: string;
-}
+//   code: string;
 
-authRouter.post("login", async (req: Request, res: Response) => {
-  // Code to handle user login
-  const { code } = req.body;
-  console.log("code", code);
-  const clientID = process.env.clientID!;
-  const clientSecret = generateClientSecret();
+// }
+async function verifyAppleToken(idToken: string) {
+  const response = await fetch("https://appleid.apple.com/auth/keys");
+  const applePublicKey = await response.json();
+  console.log("applePublicKey", applePublicKey);
 
-  console.log("clientSecret", clientSecret);
-
-  const appleTokenResponse = await fetch(
-    "https://appleid.apple.com/auth/oauth2/v2/token",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        client_id: clientID,
-        client_secret: clientSecret,
-        code: code,
-        grant_type: "authorization_code",
-      }),
-    }
-  );
-
-  if (!appleTokenResponse.ok) {
-    res.status(400).json("You are not authorized to access this resource.");
-    return;
-  }
-  appleTokenResponse.json().then((data) => {
-    console.log("appleTokenResponse", data);
+  const decoded = jwt.verify(idToken, applePublicKey, {
+    algorithms: ["RS256"],
   });
 
-  const response: IAppleSignInResponse = {
-    userId: "123",
-    authorization: "Bearer token",
-  };
+  return decoded;
+}
 
-  res.status(200).json(response);
-});
+authRouter.post("/login", getRequests);
 
 async function key(kid: string) {
   const client = jwksClient({

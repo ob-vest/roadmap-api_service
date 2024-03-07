@@ -7,11 +7,10 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/api", requestsRouter);
-db;
-
+app.use("/api/auth", authRouter);
 console.log("authPrivate", process.env.authPrivateKey);
-app.use("/", authRouter);
 
+db;
 const port = 3000;
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);

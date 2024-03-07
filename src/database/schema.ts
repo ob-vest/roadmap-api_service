@@ -12,7 +12,7 @@ import {
 
 export const user = pgTable("user", {
   id: serial("id").primaryKey(),
-  idToken: varchar("id_token", { length: 255 }).notNull().unique(),
+  appleUserId: varchar("apple_user_id", { length: 255 }).notNull().unique(),
   refreshToken: varchar("refresh_token", { length: 255 }).notNull(),
   isBlocked: boolean("is_blocked").notNull().default(false),
   isAdmin: boolean("is_admin").notNull().default(false),
@@ -27,8 +27,8 @@ export const comment = pgTable("comment", {
   userId: integer("user_id").references(() => user.id),
 });
 
-export const upvote = pgTable(
-  "upvote",
+export const requestUpvote = pgTable(
+  "request_upvote",
   {
     userId: integer("user_id").references(() => user.id),
     requestId: integer("request_id").references(() => request.id),
@@ -78,13 +78,13 @@ export const commentRelations = relations(comment, ({ one }) => ({
   }),
 }));
 
-export const upvoteRelations = relations(upvote, ({ one }) => ({
+export const upvoteRelations = relations(requestUpvote, ({ one }) => ({
   user: one(user, {
-    fields: [upvote.userId],
+    fields: [requestUpvote.userId],
     references: [user.id],
   }),
   request: one(request, {
-    fields: [upvote.requestId],
+    fields: [requestUpvote.requestId],
     references: [request.id],
   }),
 }));
@@ -111,5 +111,5 @@ export const requestRelations = relations(request, ({ one, many }) => ({
     references: [requestType.id],
   }),
   comments: many(comment),
-  upvotes: many(upvote),
+  upvotes: many(requestUpvote),
 }));

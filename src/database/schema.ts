@@ -1,15 +1,17 @@
 import { relations } from "drizzle-orm";
-import {
-  boolean,
-  int,
-  mysqlTable,
-  primaryKey,
-  timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
 
-export const user = mysqlTable("user", {
-  id: int("id").autoincrement().primaryKey(),
+import {
+  pgTable,
+  varchar,
+  boolean,
+  timestamp,
+  primaryKey,
+  integer,
+  serial,
+} from "drizzle-orm/pg-core";
+
+export const user = pgTable("user", {
+  id: serial("id").primaryKey(),
   idToken: varchar("id_token", { length: 255 }).notNull().unique(),
   refreshToken: varchar("refresh_token", { length: 255 }).notNull(),
   isBlocked: boolean("is_blocked").notNull().default(false),
@@ -17,19 +19,19 @@ export const user = mysqlTable("user", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const comment = mysqlTable("comment", {
-  id: int("id").autoincrement().primaryKey(),
+export const comment = pgTable("comment", {
+  id: serial("id").primaryKey(),
   text: varchar("text", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  requestId: int("request_id").notNull(),
-  userId: int("user_id").notNull(),
+  requestId: integer("request_id").references(() => request.id),
+  userId: integer("user_id").references(() => user.id),
 });
 
-export const upvote = mysqlTable(
+export const upvote = pgTable(
   "upvote",
   {
-    userId: int("user_id"),
-    requestId: int("request_id"),
+    userId: integer("user_id").references(() => user.id),
+    requestId: integer("request_id").references(() => request.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => {
@@ -39,25 +41,25 @@ export const upvote = mysqlTable(
   }
 );
 
-export const requestType = mysqlTable("request_type", {
-  id: int("id").autoincrement().primaryKey(),
+export const requestType = pgTable("request_type", {
+  id: serial("id").primaryKey(),
   title: varchar("title", { length: 15 }).notNull(),
 });
 
-export const requestState = mysqlTable("request_state", {
-  id: int("id").autoincrement().primaryKey(),
+export const requestState = pgTable("request_state", {
+  id: serial("id").primaryKey(),
   title: varchar("title", { length: 15 }).notNull(),
 });
 
-export const request = mysqlTable("request", {
-  id: int("id").autoincrement().primaryKey(),
+export const request = pgTable("request", {
+  id: serial("id").primaryKey(),
   title: varchar("title", { length: 50 }).notNull(),
   description: varchar("description", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastActivityAt: timestamp("last_activity_at").notNull().defaultNow(),
-  stateId: int("state_id").notNull(),
-  typeId: int("type_id").notNull(),
-  userId: int("user_id").notNull(),
+  stateId: integer("state_id").references(() => requestState.id),
+  typeId: integer("type_id").references(() => requestType.id),
+  userId: integer("user_id").notNull(),
 });
 
 // Relations

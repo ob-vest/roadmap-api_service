@@ -18,9 +18,7 @@ export const login = async (req: Request, res: Response) => {
 
   console.log("code", code);
   const clientID = process.env.clientID!;
-  const clientSecret = generateClientSecret();
-
-  console.log("clientSecret", clientSecret);
+  const clientSecret = process.env.clientSecret!;
 
   const appleTokenResponse = await fetch(
     "https://appleid.apple.com/auth/oauth2/v2/token",
@@ -107,27 +105,27 @@ async function decodeAppleIdToken(idToken: string) {
   return decodedToken.sub;
 }
 
-function generateClientSecret() {
-  const clientID = process.env.clientID!;
-  const teamID = process.env.teamID!;
-  const keyIdentifier = process.env.keyIdentifier!;
-  const privateKey = process.env.authPrivateKey!;
-  const clientSecret = jwt.sign(
-    {
-      iss: teamID,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 15777000,
-      aud: "https://appleid.apple.com",
-      sub: clientID,
-    },
-    privateKey,
-    {
-      algorithm: "ES256",
-      keyid: keyIdentifier,
-    }
-  );
-  return clientSecret;
-}
+// function generateClientSecret() {
+//   const clientID = process.env.clientID!;
+//   const teamID = process.env.teamID!;
+//   const keyIdentifier = process.env.keyIdentifier!;
+//   const privateKey = process.env.authPrivateKey!;
+//   const clientSecret = jwt.sign(
+//     {
+//       iss: teamID,
+//       iat: Math.floor(Date.now() / 1000),
+//       // exp: Math.floor(Date.now() / 1000) + 15777000,
+//       aud: "https://appleid.apple.com",
+//       sub: clientID,
+//     },
+//     privateKey,
+//     {
+//       algorithm: "ES256",
+//       keyid: keyIdentifier,
+//     }
+//   );
+//   return clientSecret;
+// }
 async function generateCustomToken(appleUserId: string) {
   // Generate a custom token that expires after 1 week using the appleUserId
   const customToken = jwt.sign(
@@ -137,7 +135,7 @@ async function generateCustomToken(appleUserId: string) {
     process.env.authPrivateKey!,
     {
       algorithm: "ES256",
-      expiresIn: "1w",
+      expiresIn: "1m",
     }
   );
   return customToken;

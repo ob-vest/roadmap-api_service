@@ -8,7 +8,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/api", requestsRouter);
 app.use("/api/auth", authRouter);
-console.log("authPrivate", process.env.authPrivateKey);
 
 db;
 

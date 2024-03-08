@@ -2,9 +2,13 @@ import { Request, Response } from "express";
 import express from "express";
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { getRequests } from "../controllers/auth/login";
+import { login } from "../controllers/auth/login";
+import { session } from "../controllers/auth/session";
 
 export const authRouter = express.Router();
+
+authRouter.post("/login", login);
+authRouter.post("/session", session);
 
 // interface userClientInfo {
 
@@ -22,8 +26,6 @@ async function verifyAppleToken(idToken: string) {
 
   return decoded;
 }
-
-authRouter.post("/login", getRequests);
 
 async function key(kid: string) {
   const client = jwksClient({

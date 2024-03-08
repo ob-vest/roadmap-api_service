@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { db } from "../../database/db-connect";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import jwksClient, { DecodedToken } from "jwks-rsa";
+import jwksClient from "jwks-rsa";
 import * as model from "../../models/authentication";
 import * as schema from "../../database/schema";
 import { eq } from "drizzle-orm";
 
-export const getRequests = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   // Code to handle user login
 
   const { code } = req.body;
@@ -51,6 +51,7 @@ export const getRequests = async (req: Request, res: Response) => {
   let user = await findUserInDatabase(appleUserId);
 
   if (user.length === 0) {
+    console.log("Creating user in database");
     await createUserInDatabase(
       appleUserId,
       appleTokenResponseData.refresh_token
@@ -140,4 +141,14 @@ async function generateCustomToken(appleUserId: string) {
     }
   );
   return customToken;
+}
+
+async function decodeCustomToken(token: string) {
+  const decoded = jwt.verify(token, process.env.authPrivateKey!, {
+    algorithms: ["ES256"],
+  });
+  if (typeof decoded === "string" || !decoded.sub) {
+    throw new Error("Invalid token");
+  }
+  return decoded;
 }

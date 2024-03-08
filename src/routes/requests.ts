@@ -3,9 +3,10 @@ import { getRequests } from "../controllers/getRequests";
 import { getCommentsByRequest } from "../controllers/getCommentsByRequest";
 import { postComment } from "../controllers/postComment";
 import { postRequest } from "../controllers/postRequest";
+import { session } from "../controllers/auth/session";
 export const requestsRouter = express.Router();
 
-requestsRouter.get("/requests", getRequests);
+requestsRouter.get("/requests", session, getRequests);
 requestsRouter.post("/requests", postRequest);
 
 requestsRouter.get("/requests/:requestId/comments", getCommentsByRequest);

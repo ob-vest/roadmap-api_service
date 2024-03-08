@@ -95,6 +95,6 @@ export async function resetDatabase() {
   // Truncate all tables and restart identity
   // https://gist.github.com/ThimoDEV/b071dc83308d6b0a5e165efb6efa4902
   await db.execute(
-    sql`TRUNCATE TABLE  upvote, comment, request , request_type, request_state, "user" RESTART IDENTITY`
+    sql`TRUNCATE TABLE  request_upvote, comment, request , request_type, request_state, "user" RESTART IDENTITY`
   );
 }

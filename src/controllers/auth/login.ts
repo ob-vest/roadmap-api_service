@@ -61,7 +61,7 @@ export const login = async (req: Request, res: Response) => {
 
   const response = {
     appleUserId: user[0].appleUserId,
-    authorization: await generateCustomToken(user[0].appleUserId),
+    authorizationToken: await generateCustomToken(user[0].appleUserId),
   };
 
   res.status(200).json(response);

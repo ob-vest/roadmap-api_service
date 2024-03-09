@@ -4,6 +4,10 @@ import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 import * as schema from "../../database/schema";
 import { NextFunction } from "express";
+import {
+  generateClientSecret,
+  generateCustomToken,
+} from "./authHelperFunctions";
 
 // Middleware to check if the user is authenticated
 export const session = async (
@@ -13,38 +17,31 @@ export const session = async (
 ) => {
   const { authorization } = req.headers;
   if (!authorization) {
-    res.status(401).json("Unauthorized");
+    res.status(401).json("No authorization header provided");
     return;
   }
 
   const token = authorization.split(" ")[1];
 
-  try {
-    await getUserFromToken(token);
+  //   try {
+  await getUserFromToken(token, res);
 
-    next();
-  } catch (err) {
-    // Handle other errors here
-    console.error("An unexpected error occurred:", err);
-    res.status(400).json("Unauthorized");
-  }
+  next();
 };
 
-async function getUserFromToken(token: string) {
+interface UserToken {
+  appleUserId: string;
+  exp: number;
+}
+
+async function getUserFromToken(token: string, sessionRes: Response) {
   const privateKey = process.env.authPrivateKey!;
   try {
     const decodedToken = jwt.verify(token, privateKey, {
       algorithms: ["ES256"],
-    });
+    }) as UserToken;
 
-    if (
-      !decodedToken ||
-      typeof decodedToken === "string" ||
-      !decodedToken.appleUserId ||
-      !decodedToken.exp
-    ) {
-      throw new Error("Unauthorized");
-    }
+    console.log("decodedToken", decodedToken);
 
     const user = await db
       .select()
@@ -52,30 +49,26 @@ async function getUserFromToken(token: string) {
       .where(eq(schema.user.appleUserId, decodedToken.appleUserId));
 
     if (!user) {
-      throw new Error("Unauthorized");
+      throw new Error("User not found");
     }
     return user[0];
   } catch (err) {
-    if (err instanceof JsonWebTokenError) {
-      // Handle the JWT error here
-      console.error("JWT verification failed:", err.message);
-      if (err.message === "jwt expired") {
-        const decodedToken = jwt.decode(token);
+    if (err instanceof JsonWebTokenError && err.message === "jwt expired") {
+      const decodedToken = jwt.decode(token) as UserToken;
 
-        if (
-          decodedToken !== null &&
-          typeof decodedToken !== "string" &&
-          decodedToken.appleUserId !== null
-        ) {
-          validateUsersRefreshToken(decodedToken.appleUserId);
-        }
-      }
+      await validateUsersRefreshToken(decodedToken.appleUserId, sessionRes);
+    } else {
+      // Handle other errors here
+      console.error("An unexpected error occurred:", err);
       throw new Error("Unauthorized");
     }
   }
 }
 
-async function validateUsersRefreshToken(appleUserId: string) {
+async function validateUsersRefreshToken(
+  appleUserId: string,
+  sessionRes: Response
+) {
   console.log("Validating refresh token for user:", appleUserId);
   const user = await db
     .select({
@@ -89,9 +82,9 @@ async function validateUsersRefreshToken(appleUserId: string) {
     throw new Error("Unauthorized");
   }
   console.log("User found:", user[0]);
-  console.log("User refresh token:", user[0].refreshToken);
-  console.log("clientID:", process.env.clientID!);
-  console.log("clientSecret:", process.env.clientSecret!);
+  //   console.log("User refresh token:", user[0].refreshToken);
+  //   console.log("clientID:", process.env.clientID!);
+  //   console.log("clientSecret:", generateClientSecret());
 
   const response = await fetch("https://appleid.apple.com/auth/token", {
     method: "POST",
@@ -100,7 +93,7 @@ async function validateUsersRefreshToken(appleUserId: string) {
     },
     body: new URLSearchParams({
       client_id: process.env.clientID!,
-      client_secret: process.env.clientSecret!,
+      client_secret: generateClientSecret(),
       grant_type: "refresh_token",
       refresh_token: user[0].refreshToken,
     }),
@@ -109,4 +102,8 @@ async function validateUsersRefreshToken(appleUserId: string) {
     console.error("Error validating refresh token:", response.statusText);
     throw new Error("Unauthorized");
   }
+  return sessionRes.header(
+    "Authorization",
+    await generateCustomToken(appleUserId)
+  );
 }

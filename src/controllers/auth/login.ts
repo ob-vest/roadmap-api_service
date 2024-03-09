@@ -5,6 +5,7 @@ import jwksClient from "jwks-rsa";
 import * as model from "../../models/authentication";
 import * as schema from "../../database/schema";
 import { eq } from "drizzle-orm";
+import * as auth from "./authHelperFunctions";
 
 export const login = async (req: Request, res: Response) => {
   // Code to handle user login
@@ -18,8 +19,8 @@ export const login = async (req: Request, res: Response) => {
 
   console.log("code", code);
   const clientID = process.env.clientID!;
-  const clientSecret = process.env.clientSecret!;
-
+  const clientSecret = auth.generateClientSecret();
+  console.log("clientSecret", clientSecret);
   const appleTokenResponse = await fetch(
     "https://appleid.apple.com/auth/oauth2/v2/token",
     {
@@ -59,7 +60,7 @@ export const login = async (req: Request, res: Response) => {
 
   const response = {
     appleUserId: user[0].appleUserId,
-    authorizationToken: await generateCustomToken(user[0].appleUserId),
+    authorizationToken: await auth.generateCustomToken(user[0].appleUserId),
   };
 
   res.status(200).json(response);
@@ -126,20 +127,6 @@ async function decodeAppleIdToken(idToken: string) {
 //   );
 //   return clientSecret;
 // }
-async function generateCustomToken(appleUserId: string) {
-  // Generate a custom token that expires after 1 week using the appleUserId
-  const customToken = jwt.sign(
-    {
-      appleUserId: appleUserId,
-    },
-    process.env.authPrivateKey!,
-    {
-      algorithm: "ES256",
-      expiresIn: "1m",
-    }
-  );
-  return customToken;
-}
 
 async function decodeCustomToken(token: string) {
   const decoded = jwt.verify(token, process.env.authPrivateKey!, {

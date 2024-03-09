@@ -17,6 +17,7 @@ export const getRequests = async (req: Request, res: Response) => {
       state: schema.requestState.title,
       tag: schema.requestType.title,
       createdAt: schema.request.createdAt,
+      lastActivityAt: schema.request.lastActivityAt,
     })
     .from(schema.request)
     .leftJoin(

@@ -24,9 +24,12 @@ export const session = async (
   const token = authorization.split(" ")[1];
 
   //   try {
-  await getUserFromToken(token, res);
-
-  next();
+  const user = await getUserFromToken(token, res);
+  if (user) {
+    res.locals.user = user;
+    next();
+  }
+  console.log("END:", user);
 };
 
 interface UserToken {
@@ -37,11 +40,7 @@ interface UserToken {
 async function getUserFromToken(token: string, sessionRes: Response) {
   const privateKey = process.env.authPrivateKey!;
   try {
-    const decodedToken = jwt.verify(token, privateKey, {
-      algorithms: ["ES256"],
-    }) as UserToken;
-
-    console.log("decodedToken", decodedToken);
+    const decodedToken = jwt.decode(token) as UserToken;
 
     const user = await db
       .select()
@@ -51,37 +50,33 @@ async function getUserFromToken(token: string, sessionRes: Response) {
     if (!user) {
       throw new Error("User not found");
     }
+
+    if (decodedToken.exp < Date.now() / 1000) {
+      await validateUsersRefreshToken(
+        user[0].appleUserId,
+        user[0].refreshToken,
+        sessionRes
+      );
+    } else {
+      console.log("Verifying token:", token);
+      jwt.verify(token, privateKey, {
+        algorithms: ["ES256"],
+      }) as UserToken;
+    }
+
+    console.log("Returning user:", user[0]);
     return user[0];
   } catch (err) {
-    if (err instanceof JsonWebTokenError && err.message === "jwt expired") {
-      const decodedToken = jwt.decode(token) as UserToken;
-
-      await validateUsersRefreshToken(decodedToken.appleUserId, sessionRes);
-    } else {
-      // Handle other errors here
-      console.error("An unexpected error occurred:", err);
-      throw new Error("Unauthorized");
-    }
+    console.error("An unexpected error occurred:", err);
+    sessionRes.status(401).json("Unauthorized");
   }
 }
 
 async function validateUsersRefreshToken(
   appleUserId: string,
+  refreshToken: string,
   sessionRes: Response
 ) {
-  console.log("Validating refresh token for user:", appleUserId);
-  const user = await db
-    .select({
-      refreshToken: schema.user.refreshToken,
-    })
-    .from(schema.user)
-    .where(eq(schema.user.appleUserId, appleUserId));
-
-  if (!user[0]) {
-    console.error("User not found");
-    throw new Error("Unauthorized");
-  }
-  console.log("User found:", user[0]);
   //   console.log("User refresh token:", user[0].refreshToken);
   //   console.log("clientID:", process.env.clientID!);
   //   console.log("clientSecret:", generateClientSecret());
@@ -95,15 +90,17 @@ async function validateUsersRefreshToken(
       client_id: process.env.clientID!,
       client_secret: generateClientSecret(),
       grant_type: "refresh_token",
-      refresh_token: user[0].refreshToken,
+      refresh_token: refreshToken,
     }),
   });
   if (!response.ok) {
     console.error("Error validating refresh token:", response.statusText);
     throw new Error("Unauthorized");
   }
-  return sessionRes.header(
-    "Authorization",
-    await generateCustomToken(appleUserId)
-  );
+  console.log("Refresh token validated successfully");
+  sessionRes.setHeader("Authorization", await generateCustomToken(appleUserId));
+  //   return sessionRes.header(
+  //     "Authorization",
+  //     await generateCustomToken(appleUserId)
+  //   );
 }

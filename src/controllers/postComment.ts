@@ -13,8 +13,7 @@ export const postComment = async (req: Request, res: Response) => {
   const request = await db
     .select()
     .from(schema.request)
-    .where(eq(schema.request.id, requestId))
-    .execute();
+    .where(eq(schema.request.id, requestId));
 
   if (request.length === 0) {
     res.status(400).json("Request not found");
@@ -22,7 +21,7 @@ export const postComment = async (req: Request, res: Response) => {
   }
 
   await db.insert(schema.comment).values({
-    userId: 1,
+    userId: 53,
     requestId: requestId,
     text: comment,
   });

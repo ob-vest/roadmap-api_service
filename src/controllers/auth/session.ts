@@ -52,6 +52,7 @@ async function getUserFromToken(token: string, sessionRes: Response) {
     }
 
     if (decodedToken.exp < Date.now() / 1000) {
+      console.log("Token expired. Verifying refresh token");
       await validateUsersRefreshToken(
         user[0].appleUserId,
         user[0].refreshToken,
@@ -94,7 +95,9 @@ async function validateUsersRefreshToken(
     }),
   });
   if (!response.ok) {
+    console.log("Client Secret:", generateClientSecret());
     console.error("Error validating refresh token:", response.statusText);
+    console.error("Response:", response);
     throw new Error("Unauthorized");
   }
   console.log("Refresh token validated successfully");

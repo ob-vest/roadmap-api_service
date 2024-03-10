@@ -20,7 +20,7 @@ export const login = async (req: Request, res: Response) => {
   console.log("code", code);
   const clientID = process.env.clientID!;
   const clientSecret = auth.generateClientSecret();
-  console.log("clientSecret", clientSecret);
+
   const appleTokenResponse = await fetch(
     "https://appleid.apple.com/auth/oauth2/v2/token",
     {

@@ -14,8 +14,8 @@ export const getRequests = async (req: Request, res: Response) => {
       commentCount: countDistinct(schema.comment.requestId),
       title: schema.request.title,
       description: schema.request.description,
-      state: schema.requestState.title,
-      tag: schema.requestType.title,
+      stateId: schema.request.stateId,
+      typeId: schema.request.typeId,
       createdAt: schema.request.createdAt,
       lastActivityAt: schema.request.lastActivityAt,
     })
@@ -25,19 +25,7 @@ export const getRequests = async (req: Request, res: Response) => {
       eq(schema.requestUpvote.requestId, schema.request.id)
     )
     .leftJoin(schema.comment, eq(schema.comment.requestId, schema.request.id))
-    .leftJoin(
-      schema.requestState,
-      eq(schema.requestState.id, schema.request.stateId)
-    )
-    .leftJoin(
-      schema.requestType,
-      eq(schema.requestType.id, schema.request.typeId)
-    )
-    .groupBy(
-      schema.request.id,
-      schema.requestState.title,
-      schema.requestType.title
-    );
+    .groupBy(schema.request.id);
 
   res.send(requestResult);
 };

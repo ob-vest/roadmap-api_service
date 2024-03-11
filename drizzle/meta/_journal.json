@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1710156469582,
+      "tag": "0000_woozy_corsair",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1710158568741,
+      "tag": "0001_fat_thunderbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1710162512025,
+      "tag": "0002_lame_tyrannus",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE "comment" ADD COLUMN "is_approved" boolean DEFAULT false NOT NULL;

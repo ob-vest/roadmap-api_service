@@ -22,6 +22,7 @@ export const user = pgTable("user", {
 export const comment = pgTable("comment", {
   id: serial("id").primaryKey(),
   text: varchar("text", { length: 255 }).notNull(),
+  isApproved: boolean("is_approved").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   requestId: integer("request_id").references(() => request.id),
   userId: integer("user_id").references(() => user.id),

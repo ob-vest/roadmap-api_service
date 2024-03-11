@@ -4,23 +4,14 @@ import * as schema from "../database/schema";
 import { eq } from "drizzle-orm";
 
 export const postRequest = async (req: Request, res: Response) => {
-  const { title, description, stateId, typeId } = req.body;
+  const { title, description, typeId } = req.body;
 
   if (!title || !description) {
     res.status(400).json("Invalid title or description");
     return;
   }
+
   // Check whether the Ids is valid
-
-  const state = await db
-    .select()
-    .from(schema.requestState)
-    .where(eq(schema.requestState.id, stateId));
-
-  if (state.length === 0) {
-    res.status(400).json("State not found");
-    return;
-  }
   const type = await db
     .select()
     .from(schema.requestType)
@@ -30,14 +21,15 @@ export const postRequest = async (req: Request, res: Response) => {
     res.status(400).json("Type not found");
     return;
   }
+  const pendingState = 1; // Default state is 1 (Pending)
 
   await db.insert(schema.request).values({
-    userId: 1,
-    stateId: stateId,
+    userId: res.locals.user.id,
+    stateId: pendingState,
     typeId: typeId,
     title: title,
     description: description,
   });
-
+  console.log("Request created");
   res.status(201).send();
 };

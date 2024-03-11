@@ -11,4 +11,4 @@ requestsRouter.get("/requests", getRequests);
 requestsRouter.post("/requests", session, postRequest);
 
 requestsRouter.get("/requests/:requestId/comments", getCommentsByRequest);
-requestsRouter.post("/requests/:requestId/comments", postComment);
+requestsRouter.post("/requests/:requestId/comments", session, postComment);

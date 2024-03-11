@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 
 export const postComment = async (req: Request, res: Response) => {
   const { requestId, comment } = req.body;
+  const user: typeof schema.user = res.locals.user;
 
   if (!requestId || !comment) {
     res.status(400).json("Invalid requestId or comment");
@@ -21,7 +22,7 @@ export const postComment = async (req: Request, res: Response) => {
   }
 
   await db.insert(schema.comment).values({
-    userId: 53,
+    userId: Number(user.id),
     requestId: requestId,
     text: comment,
   });

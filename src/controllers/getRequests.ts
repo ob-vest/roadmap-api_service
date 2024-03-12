@@ -1,9 +1,20 @@
 import { Request, Response } from "express";
 import { db } from "../database/db-connect";
 import * as schema from "../database/schema";
-import { countDistinct, eq } from "drizzle-orm";
+import { and, countDistinct, eq, sql } from "drizzle-orm";
 
 export const getRequests = async (req: Request, res: Response) => {
+  const user: typeof schema.user = res.locals.user;
+  // const didUpvote = db
+  //   .select()
+  //   .from(schema.requestUpvote)
+  //   .where(
+  //     and(
+  //       eq(schema.requestUpvote.userId, user.id),
+  //       eq(schema.requestUpvote.requestId, schema.request.id)
+  //     )
+  //   );
+
   const requestResult = await db
     .select({
       id: schema.request.id,
@@ -18,6 +29,9 @@ export const getRequests = async (req: Request, res: Response) => {
       typeId: schema.request.typeId,
       createdAt: schema.request.createdAt,
       lastActivityAt: schema.request.lastActivityAt,
+      didUpvote: user
+        ? sql`COALESCE(BOOL_OR(${schema.requestUpvote.userId} = ${user.id}), FALSE)`
+        : sql`FALSE`,
     })
     .from(schema.request)
     .leftJoin(

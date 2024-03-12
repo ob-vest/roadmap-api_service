@@ -10,26 +10,31 @@ import {
 } from "./authHelperFunctions";
 
 // Middleware to check if the user is authenticated
-export const session = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { authorization } = req.headers;
-  if (!authorization) {
-    res.status(401).json("No authorization header provided");
-    return;
-  }
+export const session = (shouldAllowPassIfNotAuthenticated: boolean = false) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const { authorization } = req.headers;
+    console.log("START SESSION AUTH:", authorization);
+    if (!authorization) {
+      if (shouldAllowPassIfNotAuthenticated) {
+        next();
+        return;
+      }
+      res.status(401).json("No authorization header provided");
+      return;
+    }
 
-  const token = authorization.split(" ")[1];
+    const token = authorization.split(" ")[1];
 
-  //   try {
-  const user = await getUserFromToken(token, res);
-  if (user) {
-    res.locals.user = user;
-    next();
-  }
-  console.log("END:", user);
+    const user = await getUserFromToken(token, res);
+    if (user) {
+      res.locals.user = user;
+      next();
+    } else if (shouldAllowPassIfNotAuthenticated) {
+      next();
+    }
+
+    console.log("END SESSION AUTH:", user);
+  };
 };
 
 interface UserToken {

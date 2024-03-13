@@ -17,8 +17,7 @@ export async function generateCustomToken(appleUserId: string) {
   return customToken;
 }
 
-export function generateClientSecret() {
-  const clientID = process.env.clientID!;
+export function generateClientSecret(clientID: string = process.env.clientID!) {
   const teamID = process.env.teamID!;
   const keyIdentifier = process.env.keyIdentifier!;
   const privateKey = process.env.authPrivateKey!;

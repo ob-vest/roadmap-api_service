@@ -11,15 +11,19 @@ export const login = async (req: Request, res: Response) => {
   // Code to handle user login
 
   const { code } = req.body;
-
+  console.log("res", res);
   if (!code) {
     res.status(400).json("Invalid code");
     return;
   }
 
   console.log("code", code);
-  const clientID = process.env.clientID!;
-  const clientSecret = auth.generateClientSecret();
+  const isOriginFromWebsite = req.headers.origin?.includes("vercel.app");
+  const clientID = isOriginFromWebsite
+    ? process.env.serviceID!
+    : process.env.clientID!;
+
+  const clientSecret = auth.generateClientSecret(clientID);
 
   const appleTokenResponse = await fetch(
     "https://appleid.apple.com/auth/oauth2/v2/token",
@@ -38,6 +42,7 @@ export const login = async (req: Request, res: Response) => {
   );
 
   if (!appleTokenResponse.ok) {
+    console.log("appleTokenResponse", appleTokenResponse);
     res.status(400).json("You are not authorized to access this resource.");
     return;
   }
@@ -62,7 +67,24 @@ export const login = async (req: Request, res: Response) => {
     appleUserId: user[0].appleUserId,
     authorizationToken: await auth.generateCustomToken(user[0].appleUserId),
   };
-
+  // if (isReferredFromApple) {
+  //   res.setHeader("Access-Control-Expose-Headers", "Authorization");
+  //   res.setHeader("Authorization", response.authorizationToken);
+  //   res.setHeader(
+  //     "Access-Control-Allow-Origin",
+  //     "https://roadmap-website-one.vercel.app"
+  //   );
+  //   res.setHeader("Access-Control-Allow-Credentials", "true");
+  //   res.cookie("authorization", response.authorizationToken, {
+  //     maxAge: 1000 * 60 * 60 * 24 * 7,
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: "none",
+  //   });
+  //   res.redirect("https://roadmap-website-one.vercel.app/login");
+  //   return;
+  // }
+  console.log("response", response);
   res.status(200).json(response);
 };
 

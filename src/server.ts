@@ -2,6 +2,7 @@ import express from "express";
 import { authRouter } from "./routes/apple-auth";
 import { requestsRouter } from "./routes/requests";
 import { db } from "./database/db-connect";
+import { adminRequestsRouter } from "./routes/admin-requests";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
 
 app.use("/api", requestsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api", adminRequestsRouter);
 
 db;
 

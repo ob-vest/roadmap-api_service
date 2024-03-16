@@ -1,12 +1,13 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "./db-connect";
 import * as schema from "./schema";
 import { faker } from "@faker-js/faker";
+import { generateDisplayName } from "../controllers/auth/authHelperFunctions";
 
 const totalUsers = 50;
 const totalRequests = 20;
 const totalComments = 50;
-const totalUpvotes = 30;
+const totalUpvotes = 10;
 
 // Seed Request Types
 export async function seedRequestTypes() {
@@ -35,7 +36,11 @@ export async function seedRequestStates() {
 export async function seedUsers() {
   // Inserting 50 users
   for (let i = 0; i < totalUsers; i++) {
+    // Check whether the display name is unique
+    const displayName = await generateDisplayName();
+
     await db.insert(schema.user).values({
+      displayName: displayName,
       appleUserId: faker.string.nanoid(20),
       refreshToken: faker.string.nanoid(20),
     });

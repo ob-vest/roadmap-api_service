@@ -1,4 +1,9 @@
 import jwt from "jsonwebtoken";
+import { faker } from "@faker-js/faker";
+import { db } from "../../database/db-connect";
+import { eq } from "drizzle-orm";
+import * as schema from "../../database/schema";
+import e from "express";
 
 export async function generateCustomToken(appleUserId: string) {
   // Generate a custom token that expires after 1 week using the appleUserId
@@ -36,4 +41,28 @@ export function generateClientSecret(clientID: string = process.env.clientID!) {
     }
   );
   return clientSecret;
+}
+
+export async function generateDisplayName() {
+  let displayName: string = "";
+  let isUnique = false;
+
+  while (!isUnique) {
+    displayName = `${faker.word.adjective({
+      length: { min: 3, max: 7 },
+    })} ${faker.animal.type()}`;
+
+    const existingUsers = await db
+      .select()
+      .from(schema.user)
+      .where(eq(schema.user.displayName, displayName));
+
+    if (existingUsers.length === 0) {
+      isUnique = true;
+    } else {
+      console.log("Display name already exists, generating a new one...");
+    }
+  }
+
+  return displayName;
 }

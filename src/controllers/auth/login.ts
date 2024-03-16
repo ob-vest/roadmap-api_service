@@ -102,6 +102,7 @@ async function findUserInDatabase(appleUserId: string) {
 
 async function createUserInDatabase(appleUserId: string, refreshToken: string) {
   await db.insert(schema.user).values({
+    displayName: await auth.generateDisplayName(),
     appleUserId: appleUserId,
     refreshToken: refreshToken,
   });

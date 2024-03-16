@@ -12,6 +12,7 @@ import {
 
 export const user = pgTable("user", {
   id: serial("id").primaryKey(),
+  displayName: varchar("display_name", { length: 25 }).notNull().unique(),
   appleUserId: varchar("apple_user_id", { length: 255 }).notNull().unique(),
   refreshToken: varchar("refresh_token", { length: 255 }).notNull(),
   isBlocked: boolean("is_blocked").notNull().default(false),

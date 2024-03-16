@@ -15,6 +15,7 @@ export const getCommentsByRequest = async (req: Request, res: Response) => {
   const comments = await db
     .select({
       id: schema.comment.id,
+      displayName: schema.user.displayName,
       userId: schema.comment.userId,
       text: schema.comment.text,
       createdAt: schema.comment.createdAt,

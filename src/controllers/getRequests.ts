@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../database/db-connect";
 import * as schema from "../database/schema";
-import { and, countDistinct, eq, sql } from "drizzle-orm";
+import { and, count, countDistinct, eq, sql } from "drizzle-orm";
 
 export const getRequests = async (req: Request, res: Response) => {
   const user: typeof schema.user = res.locals.user;
@@ -22,7 +22,7 @@ export const getRequests = async (req: Request, res: Response) => {
         schema.requestUpvote.requestId
       ),
       //   upvoteCount: countDistinct(schema.upvote.requestId, schema.upvote.userId),
-      commentCount: countDistinct(schema.comment.requestId),
+      commentCount: count(schema.comment),
       title: schema.request.title,
       description: schema.request.description,
       stateId: schema.request.stateId,

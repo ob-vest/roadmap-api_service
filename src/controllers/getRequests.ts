@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../database/db-connect";
 import * as schema from "../database/schema";
-import { and, count, countDistinct, eq, sql } from "drizzle-orm";
+import { count, countDistinct, eq, ne, sql } from "drizzle-orm";
 
 export const getRequests = async (req: Request, res: Response) => {
   const user: typeof schema.user = res.locals.user;
@@ -21,7 +21,6 @@ export const getRequests = async (req: Request, res: Response) => {
       upvoteCount: countDistinct(schema.requestUpvote.userId).mapWith(
         schema.requestUpvote.requestId
       ),
-      //   upvoteCount: countDistinct(schema.upvote.requestId, schema.upvote.userId),
       commentCount: count(schema.comment),
       title: schema.request.title,
       description: schema.request.description,
@@ -34,6 +33,7 @@ export const getRequests = async (req: Request, res: Response) => {
         : sql`FALSE`,
     })
     .from(schema.request)
+    .where(ne(schema.request.stateId, 1)) // 1 is the id of the "pending" state
     .leftJoin(
       schema.requestUpvote,
       eq(schema.requestUpvote.requestId, schema.request.id)
